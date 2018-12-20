@@ -1,7 +1,9 @@
 # The Hangman : A funny web version
 
+[Screen](screen.jpg)
+
 ## Installation : 
-Just pust the folder in your local server, and call it from the webbrowser of your choice ! 
+Just put the folder in your local server, and call it from the webbrowser of your choice ! 
 
 ## Note : 
 This application doesn't support multi-sizing windows, and should be run in full-screen for now unfortunately :(
