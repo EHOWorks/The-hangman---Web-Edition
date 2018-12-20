@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hangman</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ords" content="Bubble Login Form template Responsive, Login form web template,Flat Pricing tables,Flat Drop downs  Sign up Web Templates, Flat Web Templates, Login sign up Responsive web template, SmartPhone Compatible web template, free WebDesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+<script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
+<!-- Custom Theme files -->
+<link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
+<!-- //Custom Theme files -->
+<!-- js -->
+<script src="js/jquery-2.2.3.min.js"></script>
+<!-- //js --> 
+<!-- web font -->  
+<link href="//fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i,900,900i" rel="stylesheet">
+<link href="//fonts.googleapis.com/css?family=Roboto+Condensed:300,300i,400,400i,700,700i" rel="stylesheet">
+
+<link rel="stylesheet" href="css/w3.css"> 
+<!-- //web font --> 
+<!-- myScript -->
+<script language="JavaScript">
+
+				var score=0;
+				var tictac=0;
+				var kk=0;
+			
+				var motSecret;
+				var allMotSecret = new Array();
+				var boundaries;
+				var changedLetters = new Array();
+				
+				var now=new Date();			// Date d'aujourd'hui
+				var tableauMot=new Array();	// Le tableau qui contient les lettres du mot à trouver
+				var mots=new Array();		// Le tableau qui contient tous les mots possibles
+			
+
+				var tailleMot;				// Le nombre de lettres du mot à trouver
+				var coupsManques=0;			// Le nombre de lettres fausses essayées
+				var lettresTrouvees=0;		// Le nombre de lettres trouvées
+				var fini=false;		// true si le jeu est terminé
+				
+				//On lit le fichier pour le stocker dans le tableau mots
+				readTextFile("http://localhost:80/dictionary.txt");
+				
+
+				//Permet le choix d'un mot en fonction de la section 
+				function chooseMot(inf,sup){
+				do{
+
+					var lambda = Math.random(); //génère un nombre entre 0 inclusive et 1 exclusive
+					motSecret=mots[Math.floor((1-lambda)*(inf+1)+lambda*sup)].trim().toUpperCase(); // permet de s'assurer que le mot appartient à l'intervalle
+					tailleMot=motSecret.length;
+					}while(motSecret.trim()=="" || motSecret.toLowerCase().includes("section") || motSecret.trim()=="FR" || motSecret.trim()=="ENG");
+				//alert("Le mot secret est : "+ motSecret);
+				}
+				
+				// Permet de changer la couleur des touches du clavier
+				function changeCouleur(lettre,couleur){
+					//element.style.backgroundColor=couleur;			
+					document.getElementById(lettre).className="w3-btn w3-"+couleur+" w3-border w3-round-large";
+					changedLetters.push(document.getElementById(lettre));
+					
+				}
+				
+				// Gère tous les traitements à faire lorsqu'on appuie sur une touche
+				function proposer(element){
+					
+					var lettre=element.innerText;
+					
+					// Si la couleur de fond est lightgreen , c'est qu'on a déjà essayé - OU QUE LE JEU EST TERMINE lol -on quitte la fonction
+					if(document.getElementById(lettre).className.includes("green") || document.getElementById(lettre).className.includes("red") || fini) return;
+					
+					// On récupère la lettre du clavier et on met la touche en lightgreen (pour signaler qu'elle est cliquée)
+					changeCouleur(lettre,"red");
+					
+					// On met la variable trouve à false;
+					var trouve=false;
+					
+					// On parcourt chaque lettre du mot, on cherche si on trouve la lettre séléectionnée au clavier
+					for(var i=0; i<tailleMot; i++) {
+						
+						// Si c'est le cas :
+						if(tableauMot[i].innerHTML==lettre) {
+							changeCouleur(lettre,"green");
+							tableauMot[i].style.visibility='visible';	// On affiche la lettre
+							document.getElementById(i).className="w3-animate-top";
+							document.getElementById(i).style.animationDuration="1.5s";
+							document.getElementById("myBubble").style.backgroundImage="url(images/pendu_impressive.jpg)"; // Impressionant, t'as trouve une lettre !
+							trouve=true;
+							lettresTrouvees++;
+							score+=500;
+						}
+					}
+					
+					// Si la lettre n'est pas présente, trouvé vaut toujours false :
+					if(!trouve){
+						coupsManques++;
+						if(score!=0){score -=100;}
+						document.getElementById("tent").innerText=9-coupsManques;
+						document.getElementById("myBubble").style.backgroundImage="url(images/pendu_"+coupsManques+".jpg)"; // On change l'image du pendu
+						
+						// Si on a raté 9 fois :
+						if(coupsManques==9){
+
+							document.getElementById("myBubble").style.backgroundImage="url(images/pendu_0.gif)";
+							if(score==0){ alert("Dommage... Vous ferez mieux la prochaine fois"); }
+							else if( score>=500 && score <1000) {alert("Honorable ! N'hésitez pas a retenter votre chance ");}
+							else if (score >=1000 && score<6000) {alert("C'était bien joué ! Vous pouvez surement faire mieux !");}
+							else if(score >=6000 && score<10000) {alert("Belle partie ! Vous avez un don pour les devinettes ! N'hésitez pas à rejouer ");}
+							else if(score >=10000){alert("Vous êtes un génie !");}	
+								
+							for(var i=0; i<tailleMot; i++) tableauMot[i].style.visibility='visible';
+							fini=true;
+							// on affiche le mot, on finit le jeu
+						}
+					}
+
+					document.getElementById("score").innerText=score;
+					if(score!=0){animate(document.getElementById('score'));}
+					
+					//alert("Vous avez trouve "+ lettresTrouvees +"et le mot fait "+tailleMot)
+
+					if(lettresTrouvees==tailleMot){
+						document.getElementById("myBubble").style.backgroundImage="url(images/pendu_impressive.jpg)";
+						alert("Impressionant, tu as deviné le mot ! ");
+						fini=true;
+						restart();
+					}	
+				}
+
+				function openGame(){
+					var input=document.getElementById('pseudo').value;
+					var langue=document.getElementById("lang").innerHTML;
+					
+					if(input.trim()==""){
+						alert("Veuillez renseigner votre nom d'utilisateur");
+					}
+					else{
+						document.getElementById('index').style.display='none';document.getElementById('sections').style.display='block';
+						showSections(getSections(langue));
+						//document.getElementById('mainBubble').style.marginTop='-300px';document.getElementById('myBubble').style.display='block';
+					}
+				}
+
+        		function readTextFile(file)
+				{
+			    var rawFile = new XMLHttpRequest(); // xml http request envoie et récupère des données du serveur 
+			    rawFile.open("GET", file, false); // specifie le type de la requete 
+			    rawFile.onreadystatechange = function () //specifie la fonction à executer a chaque changement de l'objet de XMLHttpRequest 
+			    {
+			        if(rawFile.readyState === 4) // readyState=4 : request finished and response is ready
+			        {
+			            if(rawFile.status === 200) //status= 200 : OK
+			            {
+			                var allText = rawFile.responseText; //	The response data as a string
+			                mots=allText.split("\n");
+			                //alert(mots);  
+			            }
+			        }
+			    }
+			    rawFile.send(null); //Stoppe la communication avec le serveur
+				}
+
+				function chooseLangue(langue)
+				{
+					document.getElementById("lang").innerHTML=langue;
+					//alert(document.getElementById("lang").innerHTML);
+					document.getElementById(langue).className="w3-button w3-round-large w3-grey";
+					if(langue=="ENG"){
+						document.getElementById("FR").className="w3-button w3-round-large w3-white";
+						document.getElementById("title").innerText="The Hangman";
+						document.getElementById("usrname").innerText="User Name";
+						document.getElementById("subtitle").innerText="Choose a Nickname";
+						document.getElementById("rmbr").innerText="Remember me ?";
+					}else{
+						document.getElementById("ENG").className="w3-button w3-round-large w3-white";
+						document.getElementById("title").innerText="Le Pendu";
+						document.getElementById("usrname").innerText="Nom d'Utilisateur";
+						document.getElementById("subtitle").innerText="Choisissez votre pseudo";
+						document.getElementById("rmbr").innerText="Se souvenir de moi?"
+					}
+				}
+
+				function start(section){
+					var snd = new Audio("pendu.mp3"); 
+					snd.play();
+					var snd = new Audio("sundaybrunch.mp3"); // YEAH ! DAISUKI DESU ! :)
+					snd.play();
+					boundaries = findBoundaries(section); // trouve l'index du premier et du dernier mot d'une section
+					chooseMot(boundaries.inf,boundaries.sup);
+					//alert(motSecret);
+					document.getElementById('jeu').style.display='block';
+					document.getElementById('myBubble').style.display='block';
+					document.getElementById('myBubble2').style.display='block';
+					document.getElementById('sections').style.display='none';
+					document.getElementById('myBubbleScore').style.display='block';
+					document.getElementById('title').innerText="Bienvenue, "+document.getElementById('pseudo').value.trim();					
+					drawTable();	
+					allMotSecret[kk]=motSecret; kk++;
+				}
+				function restart(section){
+					coupsManques=0;
+					fini=false;
+					lettresTrouvees=0;
+					var checkInfinite=0;
+					//alert("La table contenant tout les mots secrets: "+ allMotSecret);
+					do{
+						chooseMot(boundaries.inf,boundaries.sup);
+						checkInfinite++;
+					}while(checkUsed()&&checkInfinite<=8*(boundaries.sup-boundaries.inf));
+					allMotSecret[kk]=motSecret; kk++;
+					if(checkInfinite<=8*(boundaries.sup-boundaries.inf)){
+						reDrawTable();
+					}
+					else{
+						alert("C'est incroyable ! Vous avez trouvé tous les mots de cette section !");
+						document.getElementById("myBubble").style.backgroundImage="url(images/pendu_0.gif)";
+					}
+				}
+				function checkUsed(){
+					for(var i=0;i<allMotSecret.length;i++){
+						//alert("On a deja :"+ allMotSecret[i]+" et on veut : "+motSecret);
+						if(allMotSecret[i].trim()==motSecret.trim()){
+							return true;
+						}
+					}
+					return false;
+				}
+				function drawTable(){ //crée et remplis le tableau selon le nombre de i : cases.
+					var row = document.getElementById("mot").rows[0];
+					for(var i=motSecret.length-1;i>-1;i--){
+                            	var cell = row.insertCell(0); //InsertCell : Insert new cell(s) with content at the beginning of a table row
+                            	cell.innerHTML = "<td><p id="+i+">"+motSecret.charAt(i)+"</p></td>"; //charAt returns the character at the specified index in a string
+                            	cell.className="w3-white w3-round";
+                            	//alert(cell.innerHTML);
+                            	//alert(document.getElementById(i).innerHTML);
+                            }
+                    for(var i=0; i<tailleMot; i++){tableauMot[i]=document.getElementById(i);}
+				}
+				function reDrawTable(){ 
+					for(var i=0;i<changedLetters.length;i++){
+						changedLetters[i].className="w3-btn w3-black w3-border w3-round-large";
+					}
+					document.getElementById("mot").innerHTML="<tr></tr>";
+					drawTable();
+				}
+				function showSections(sections){
+					var snd = new Audio("pendu.mp3"); 	
+					snd.play();
+
+					for(var i=0;i<sections.length;i++){
+						document.getElementById("section"+i).innerHTML=sections[i];
+						document.getElementById("section"+i).style.display="block";
+					}
+				}
+
+				function getSections(langue){ // retourne les sections selon la langue
+					var i=0;
+					var tableSections =[];
+					var k=0;
+					if(langue=="FR"){
+						do{
+							if(mots[i].toLowerCase().includes("section") && !mots[i].toLowerCase().includes("end section") ){
+								tableSections[k]=mots[i];
+								k++;
+							}
+							i++;
+						}while(mots[i].trim()!="ENG");
+					}
+					else{
+						var index=findIndex("ENG");
+						for(i=index;i<mots.length;i++){
+							if(mots[i].toLowerCase().includes("section") && !mots[i].toLowerCase().includes("end section")){
+								tableSections[k]=mots[i];
+								k++;
+							}
+						}
+					}
+					return tableSections;
+				}
+
+				function findIndex(string){ //retourne l'index
+					for(var i=0;i<mots.length;i++){
+						if(mots[i].trim()==string.trim()){ //trim() function removes whitespace and other predefined characters from both sides of a string.
+							return i;
+						}
+					}
+				}
+
+				function findBoundaries(string){ // retourne l'indice du premier et du dernier mot de chaque section
+					var inf = findIndex(string);
+					var sup = inf;
+					do{
+						sup++;
+					}while(!mots[sup].toLowerCase().includes("section"));
+					return {inf: inf, sup: sup};
+				}
+				function animate(element){
+					if(tictac==0){
+						element.className="w3-animate-top";
+						tictac=1;
+						return;
+					}
+					if(tictac==1){
+						element.className="w3-animate-bottom";
+						tictac=0;
+						return;
+					}
+				}			
+</script>
+<!-- myScript -->
+</head>
+<body class="video" data-vide-bg="video/bubble">
+	<!--Bloc de Variables à Recuperer -->
+	<p id="lang" style="display:none"></p>
+	<p id="section" style="display:none"></p>
+	<!-- main -->
+	<div class="main">
+		<h1 id="title" class="w3-animate-fading">The Hangman</h1>
+		<div id="myBubbleScore" class="main-w3lsrow" style="display:none"><h1 style="text-align:center;margin-top:30%">Score</h1><h1 id="score" >0</h1></div>
+		<div id="myBubble" class="main-w3lsrow" style="display:none;background-image:url(images/pendu_0.gif);background-position:center"></div>	
+		<div id="myBubble2" class="main-w3lsrow w3-spin" style="animation-duration:4s;display:none;background-color:indigo">
+				<a href="javascript:location.reload();" style="text-decoration:none;"><h2 style="text-align:center;margin-top:40%;color:white;font-size:1
+				.6em"> Nouvelle partie</h2></a>
+		</div>	
+		
+		<div id="mainBubble" class="main-w3lsrow w3-animate-zoom" style="animation-duration:1.5s">
+			<!-- login form -->
+			<div id="index" class="login-form login-form-left"> 
+				<div class="agile-row">
+					<h2 id="subtitle">Choose a Nickname</h2> 
+					<div class="login-agileits-top"> 	
+						<form action="#" method="post"> 
+							<p id="usrname">User Name </p>
+							<input id="pseudo" type="text" class="name" name="user name" required/> 
+							<input style="display:none" type="text" class="name" name="user name" required/> 
+							<label class="anim">
+								<input type="checkbox" class="checkbox">
+								<span id="rmbr"> Remember me ?</span> 
+							</label>   
+							<button id="FR" class="w3-button w3-round-large w3-white "  onclick="chooseLangue('FR')">FR</button>
+							<button id="ENG" class="w3-button w3-round-large w3-white "  onclick="chooseLangue('ENG')">ENG</button>
+							<input type="submit" class="w3-animate-fading" onclick="openGame()" value="Start-スタト"/>
+						</form> 
+					</div> 
+				</div>  		
+			</div>  
+			<!-- Page Section -->
+			<div id="sections" class="page" style="display:none;margin-top:10%">
+				<div class="w3-container" style="margin-top:20%">
+					<p><button id="section0" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-left" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 1</button></p>
+					<p><button id="section1" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-right" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 2</button></p>
+					<p><button id="section2" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-left" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 3</button></p>
+					<p><button id="section3" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-right" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 4</button></p>
+					<p><button id="section4" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-right" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 5</button></p>
+					<p><button id="section5" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-right" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 6</button></p>
+					<p><button id="section6" class="section w3-button w3-round-large w3-white w3-margin-top w3-animate-right" style="animation-duration:2s;display:none" onclick="start(this.innerHTML)">Section 7</button></p>
+
+				</div>
+			</div>
+			<!-- Page Section-->
+			<!-- Page du Jeu -->
+			<div id="jeu" class="page" style="display:none">
+				
+				<table id="clavier">
+				 <tr>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-top"><button id="A" class="w3-btn w3-black w3-border w3-round-large ">A</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s"  class="w3-animate-bottom"><button id="B" class="w3-btn w3-black w3-border w3-round-large ">B</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-top"><button id="C" class="w3-btn w3-black w3-border w3-round-large ">C</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="D" class="w3-btn w3-black w3-border w3-round-large ">D</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-top"><button id="E" class="w3-btn w3-black w3-border w3-round-large ">E</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="F" class="w3-btn w3-black w3-border w3-round-large ">F</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-top"><button id="G" class="w3-btn w3-black w3-border w3-round-large ">G</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="H" class="w3-btn w3-black w3-border w3-round-large ">H</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-top" ><button id="I" class="w3-btn w3-black w3-border w3-round-large ">I</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom" ><button id="J" class="w3-btn w3-black w3-border w3-round-large ">J</button></td>
+				 </tr>
+				 <tr>
+				  <td onclick="proposer(this);" style="animation-duration:1s"  class="w3-animate-left" ><button id="K" class="w3-btn w3-black w3-border w3-round-large ">K</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-left" ><button id="L" class="w3-btn w3-black w3-border w3-round-large ">L</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-left"><button id="M" class="w3-btn w3-black w3-border w3-round-large ">M</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-left"  ><button id="N"  class="w3-btn w3-black w3-border w3-round-large ">N</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-left"><button id="O" class="w3-btn w3-black w3-border w3-round-large ">O</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-right"  ><button id="P" class="w3-btn w3-black w3-border w3-round-large ">P</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-right"><button id="Q" class="w3-btn w3-black w3-border w3-round-large ">Q</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-right" ><button  id="R" class="w3-btn w3-black w3-border w3-round-large ">R</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-right"><button id="S" class="w3-btn w3-black w3-border w3-round-large ">S</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-right" ><button id="T" class="w3-btn w3-black w3-border w3-round-large ">T</button></td>
+				 </tr>
+				 <tr>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="U" class="w3-btn w3-black w3-border w3-round-large ">U</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="V" class="w3-btn w3-black w3-border w3-round-large ">V</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="W" class="w3-btn w3-black w3-border w3-round-large ">W</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="X" class="w3-btn w3-black w3-border w3-round-large ">X</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="Y" class="w3-btn w3-black w3-border w3-round-large ">Y</button></td>
+				  <td onclick="proposer(this);" style="animation-duration:1s" class="w3-animate-bottom"><button id="Z" class="w3-btn w3-black w3-border w3-round-large ">Z</button></td>
+				 </tr>
+				</table>
+				<br>
+
+				
+
+				<table id="mot">
+					<tr>
+						<script language="javascript">
+			                for(var i=0; i<tailleMot; i++) {document.write("<td> <p id=\""+i+"\">"+motSecret.charAt(i)+"</p></td>");}
+						</script>
+					</tr>
+				</table>
+
+				<div class="w3-container w3-center w3-margin-top w3-text-white"><p>Nombres de Tentatives Restantes </p></div>
+				<div class="w3-container w3-center w3-margin-top w3-text-white"><p id="tent">9</p></div>
+
+				<script language="javascript">
+					for(var i=0; i<tailleMot; i++) tableauMot[i]=document.getElementById(i);
+				</script>	
+			</div>
+			<!-- Page du Jeu -->
+		
+		</div>
+		<!-- copyright -->
+		<div class="copyright">
+			<p> © Powered By ENSAK Engineers. Inspired by W3Layouts Bubble Form 2017.</p>
+		</div>
+		<!-- //copyright --> 
+	</div>	
+	<!-- //main --> 
+	<script src="js/jquery.vide.min.js"></script> 
+	
+</body>
+</html>
