@@ -1,6 +1,6 @@
 # The Hangman : A funny web version
 
-![Screen](screen.png)
+![Screen](Screen.png)
 
 ## Installation : 
 Just put the folder in your local server, and call it from the webbrowser of your choice ! 
